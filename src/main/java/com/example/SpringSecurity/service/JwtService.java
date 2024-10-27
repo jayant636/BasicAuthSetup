@@ -14,12 +14,11 @@ import java.util.Set;
 
 @Service
 public class JwtService {
-
     @Value("${jwt.SecretKey}")
-    public String JWT_SECRET_KEY;
+    private String jwtSecretKey;
 
-    public SecretKey getSecretKey(){
-        return Keys.hmacShaKeyFor(JWT_SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    private SecretKey getSecretKey(){
+        return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(UserEntity userEntity){
@@ -28,7 +27,7 @@ public class JwtService {
                 .claim("email",userEntity.getEmail())
                 .claim("roles", Set.of("ADMIN","USER"))
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis()+1000*60*60))
+                .expiration(new Date(System.currentTimeMillis()+1000*60*10))
                 .signWith(getSecretKey())
                 .compact();
     }
