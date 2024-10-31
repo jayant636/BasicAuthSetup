@@ -32,6 +32,15 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateRefreshToken(UserEntity userEntity){
+        return Jwts.builder()
+                .subject(userEntity.getId().toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis()+1000*60*60*60*60))
+                .signWith(getSecretKey())
+                .compact();
+    }
+
 
     public Long getUserIdFromToken(String token){
         Claims claims = Jwts.parser()

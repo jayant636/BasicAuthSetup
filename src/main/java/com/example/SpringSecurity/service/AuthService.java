@@ -1,6 +1,7 @@
 package com.example.SpringSecurity.service;
 
 import com.example.SpringSecurity.dtos.LoginDto;
+import com.example.SpringSecurity.dtos.LoginResponseDto;
 import com.example.SpringSecurity.dtos.SignUpDto;
 import com.example.SpringSecurity.dtos.UserDto;
 import com.example.SpringSecurity.entity.UserEntity;
@@ -21,6 +22,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -40,12 +42,24 @@ public class AuthService {
 
     }
 
-    public String login(LoginDto loginDto) {
+    public LoginResponseDto login(LoginDto loginDto) {
      Authentication authentication =  authenticationManager.authenticate(
              new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword())
      );
      UserEntity userEntity = (UserEntity) authentication.getPrincipal();
 
-        return jwtService.generateToken(userEntity);
+        String accessToken = jwtService.generateToken(userEntity);
+        String refreshtoken = jwtService.generateRefreshToken(userEntity);
+
+
+        return new LoginResponseDto(userEntity.getId(),accessToken,refreshtoken);
+    }
+
+    public LoginResponseDto refreshtoken(String refreshtoken) {
+        Long userId = jwtService.getUserIdFromToken(refreshtoken);
+
+        UserEntity userEntity = userService.getUserFromId(userId).orElseThrow(() -> new RuntimeException("User not found found"));
+        String accessToken = jwtService.generateToken(userEntity);
+        return new LoginResponseDto(userEntity.getId(), accessToken, refreshtoken);
     }
 }
